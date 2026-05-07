@@ -1,0 +1,18 @@
+{
+    "optimal_thresholds": {
+        "toxicity": 0.533004641532898,
+        "obscene": 0.38537392020225525,
+        "sexual_explicit": 0.32631561160087585,
+        "identity_attack": 0.4630753993988037,
+        "insult": 0.5110227465629578,
+        "threat": 0.3482295274734497
+    },
+    "target_cols": [
+        "toxicity",
+        "obscene",
+        "sexual_explicit",
+        "identity_attack",
+        "insult",
+        "threat"
+    ]
+}

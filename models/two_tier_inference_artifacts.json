@@ -1,0 +1,18 @@
+{
+    "model_1_recall_95_thresh": 0.3136042356491089,
+    "model_1_optimal_f1_thresh": 0.5281431078910828,
+    "model_2_optimal_thresholds": {
+        "obscene": 0.4144045412540436,
+        "sexual_explicit": 0.35424402356147766,
+        "identity_attack": 0.4502300024032593,
+        "insult": 0.5120863318443298,
+        "threat": 0.32002267241477966
+    },
+    "sub_cols": [
+        "obscene",
+        "sexual_explicit",
+        "identity_attack",
+        "insult",
+        "threat"
+    ]
+}
