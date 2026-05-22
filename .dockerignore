@@ -1,0 +1,35 @@
+# Training data
+data/
+*.csv
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Misc
+*.md
+*.log
+scripts/
+charge-estimation-deployment/
