@@ -7,11 +7,21 @@ sdk: docker
 app_port: 7860
 ---
 
-# ToxGuard Multi-Label Content Flagger
+# 🛡️ ToxGuard Multi-Label Content Flagger
+
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit)](https://toxguard-06.streamlit.app/)
+[![API Backend](https://img.shields.io/badge/API_Backend-Hugging_Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://gencoder-toxguard-api.hf.space)
+[![GitHub](https://img.shields.io/badge/GitHub-Source_Code-181717?logo=github&style=for-the-badge)](https://github.com/Priyanshukv06/ToxGuard_Multi-Label_Content_Flagger.git)
 
 A production-ready content moderation system that detects overall toxicity and categorizes it into 5 specific sublabels using dual BiLSTM model pipelines.
 
-[![GitHub](https://img.shields.io/badge/GitHub-Source_Code-181717?logo=github&style=for-the-badge)](https://github.com/Priyanshukv06/ToxGuard_Multi-Label_Content_Flagger.git)
+---
+
+## 🔗 Live Deployments
+
+* **Frontend Dashboard (Streamlit):** [https://toxguard-06.streamlit.app/](https://toxguard-06.streamlit.app/)
+* **Backend API (Hugging Face Spaces):** [https://gencoder-toxguard-api.hf.space](https://gencoder-toxguard-api.hf.space)
+* **API Documentation:** [https://gencoder-toxguard-api.hf.space/docs](https://gencoder-toxguard-api.hf.space/docs)
 
 ---
 
@@ -40,7 +50,7 @@ This system uses two deep learning architectures trained on scraped comment data
 - **Backend API**: FastAPI, Uvicorn, TensorFlow 2.10 (CPU-only for efficient deployment)
 - **Frontend UI**: Streamlit (with custom dark theme CSS)
 - **Data Processing**: Pandas, NumPy
-- **Deployment**: Docker, Hugging Face Spaces (16GB RAM Tier)
+- **Deployment**: Docker, Hugging Face Spaces (16GB RAM Tier), Streamlit Community Cloud
 
 ## 📂 Repository Structure
 
