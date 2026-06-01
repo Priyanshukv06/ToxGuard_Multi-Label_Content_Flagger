@@ -35,9 +35,6 @@ env/
 # Data and Models
 data/
 
-models/
-models_new/
-
 # Jupyter Notebooks
 .ipynb_checkpoints
 
