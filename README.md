@@ -31,7 +31,7 @@ This system uses two deep learning architectures trained on scraped comment data
 - **Backend API**: FastAPI, Uvicorn, TensorFlow 2.10 (CPU-only for efficient deployment)
 - **Frontend UI**: Streamlit (with custom dark theme CSS)
 - **Data Processing**: Pandas, NumPy
-- **Deployment**: Docker, Render Free Tier
+- **Deployment**: Docker, Hugging Face Spaces (16GB RAM Tier)
 
 ## 📂 Repository Structure
 

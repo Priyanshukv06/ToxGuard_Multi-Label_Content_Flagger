@@ -15,7 +15,7 @@ async def keep_alive_loop():
     service_url = os.getenv("SERVICE_URL", "")
 
     if not service_url:
-        hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
+        hostname = os.getenv("SPACE_HOST", "")
         if hostname:
             service_url = f"https://{hostname}"
 

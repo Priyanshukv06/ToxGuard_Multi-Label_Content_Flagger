@@ -25,9 +25,9 @@
 | Keep-alive mechanism | ✅ Done | Self-ping every 12h |
 | Sample data prep script | ✅ Done | 10k comments → data_sample/test_sample.json |
 | Dockerfile + .dockerignore | ✅ Done | python:3.10-slim, tensorflow-cpu |
-| render.yaml deployment config | ✅ Done | Free tier, health check |
+| Hugging Face deployment config | ✅ Done | 16GB RAM tier, health check |
 | Local testing | ✅ Done | All endpoints verified |
-| Deploy to Render | ⬜ Pending | Push to Github then Render |
+| Deploy to Hugging Face Spaces | ⬜ Pending | Push to Hugging Face Git |
 
 ## Phase 2: Frontend (Streamlit) — ✅ COMPLETE
 
@@ -57,6 +57,6 @@
 ---
 
 ## Deployment URLs
-- **Backend**: Pending Render deployment
+- **Backend**: Pending Hugging Face Spaces deployment
 - **API Docs**: Pending
 - **Frontend**: Pending Streamlit Cloud deployment
