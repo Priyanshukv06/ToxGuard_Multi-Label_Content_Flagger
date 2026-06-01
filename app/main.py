@@ -28,8 +28,8 @@ async def lifespan(app: FastAPI):
     logger.info("  Starting ToxGuard Content Flagger API")
     logger.info("=" * 60)
 
-    # Load ML models into memory
-    load_all_models()
+    # Load ML models into memory in the background so it doesn't block port binding
+    asyncio.create_task(asyncio.to_thread(load_all_models))
 
     # Load sample data for the randomize feature
     load_sample_data()
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     keep_alive_task = asyncio.create_task(keep_alive_loop())
 
     logger.info("=" * 60)
-    logger.info("  ✅ API Ready — all models loaded")
+    logger.info("  ✅ API Ready — models are loading in the background")
     logger.info("=" * 60)
 
     yield
