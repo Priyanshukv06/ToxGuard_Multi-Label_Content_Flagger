@@ -16,4 +16,5 @@ COPY data_sample/ ./data_sample/
 EXPOSE 8000
 
 # Run with uvicorn (single worker for free tier memory constraints)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Use shell form so the $PORT environment variable can be evaluated (Render sets this dynamically)
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1
