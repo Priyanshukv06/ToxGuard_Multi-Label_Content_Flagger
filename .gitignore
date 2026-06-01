@@ -34,7 +34,7 @@ env/
 
 # Data and Models
 data/
-data_sample/
+
 models/
 models_new/
 
