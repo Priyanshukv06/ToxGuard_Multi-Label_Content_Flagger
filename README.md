@@ -1,3 +1,12 @@
+---
+title: ToxGuard API
+emoji: 🛡️
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+---
+
 # ToxGuard Multi-Label Content Flagger
 
 A production-ready content moderation system that detects overall toxicity and categorizes it into 5 specific sublabels using dual BiLSTM model pipelines.
