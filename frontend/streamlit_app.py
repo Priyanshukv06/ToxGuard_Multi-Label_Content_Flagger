@@ -132,12 +132,12 @@ def main():
 
             st.markdown("---")
             st.markdown("### 🎲 Sample Data")
-            if st.button("🔀 Randomize Comment", use_container_width=True, type="primary"):
+            if st.button("🔀 Randomize Comment", type="primary", use_container_width=True):
                 random_patient = fetch_random_patient()
                 if random_patient:
                     st.session_state["text_input"] = random_patient.get("comment_text", "")
                     st.session_state["auto_predict"] = True
-                    st.experimental_rerun()
+                    st.rerun()
 
             st.markdown("---")
             st.markdown("### 📡 Backend Status")
