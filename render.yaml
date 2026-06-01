@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: toxguard-content-flagger
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: KEEP_ALIVE_INTERVAL_HOURS
+        value: "12"
