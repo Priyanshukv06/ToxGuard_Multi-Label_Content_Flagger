@@ -33,3 +33,5 @@ env/
 *.log
 scripts/
 charge-estimation-deployment/
+model_metrics.md
+guide.md

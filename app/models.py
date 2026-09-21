@@ -3,7 +3,7 @@ Pydantic request/response schemas for ToxGuard Multi-Label Content Flagger.
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 
 # Threshold presets based on optimal validation F1 scores
@@ -26,21 +26,44 @@ TWO_STAGE_PRESETS = {
     "aggressive": {"toxicity": 0.45, "obscene": 0.30, "sexual_explicit": 0.25, "identity_attack": 0.35, "insult": 0.40, "threat": 0.20},
 }
 
+# Fallback presets for the transformer model, in the same style as the two tables
+# above. app/inference.py overrides these per-class centers with the model's own
+# trained optimal_thresholds (from models/transformer_inference_artifacts.json)
+# when that file exists, so these numbers only matter before training completes.
+TRANSFORMER_PRESETS = {
+    "lenient":    {"toxicity": 0.65, "obscene": 0.50, "sexual_explicit": 0.45, "identity_attack": 0.55, "insult": 0.60, "threat": 0.45},
+    "moderate":   {"toxicity": 0.60, "obscene": 0.45, "sexual_explicit": 0.40, "identity_attack": 0.50, "insult": 0.55, "threat": 0.40},
+    "balanced":   {"toxicity": 0.55, "obscene": 0.40, "sexual_explicit": 0.35, "identity_attack": 0.45, "insult": 0.50, "threat": 0.35},
+    "cautious":   {"toxicity": 0.50, "obscene": 0.35, "sexual_explicit": 0.30, "identity_attack": 0.40, "insult": 0.45, "threat": 0.30},
+    "aggressive": {"toxicity": 0.45, "obscene": 0.30, "sexual_explicit": 0.25, "identity_attack": 0.35, "insult": 0.40, "threat": 0.25},
+}
+
 class PredictRequest(BaseModel):
     text: str = Field(..., description="Text to analyze")
     model_choice: str = Field(
         "both", 
-        description="Model to use: 'multilabel', 'two_stage', or 'both'"
+        description="Model to use: 'multilabel', 'two_stage', 'transformer', or 'both' "
+                     "('both' = multilabel OR two_stage; transformer is a separate, optional third model)"
     )
     threshold_preset: str = Field(
         "balanced",
         description="Threshold preset: 'lenient', 'moderate', 'balanced', 'cautious', 'aggressive'"
+    )
+    explain: bool = Field(
+        False,
+        description="If true and model_choice='transformer', also return word-level "
+                     "attention-rollout importance scores in the 'explanation' field."
     )
 
 class BatchPredictRequest(BaseModel):
     texts: list[str] = Field(..., description="List of texts to analyze")
     model_choice: str = Field("both")
     threshold_preset: str = Field("balanced")
+
+class WordImportance(BaseModel):
+    token: str
+    weight: float = Field(..., description="Normalized [0,1] attention-rollout importance score")
+
 
 class PredictionResult(BaseModel):
     is_toxic: bool = Field(..., description="Overall toxicity flag")
@@ -53,6 +76,10 @@ class PredictionResult(BaseModel):
     # If using 'both' mode, this field holds the individual model results for detailed comparison
     detailed_results: Optional[Dict[str, 'PredictionResult']] = None
 
+    # Populated only for model_choice='transformer': word-level attention-rollout
+    # importance scores explaining which words drove the prediction.
+    explanation: Optional[List[WordImportance]] = None
+
 class BatchPredictResponse(BaseModel):
     predictions: list[PredictionResult]
 
@@ -61,5 +88,5 @@ class HealthResponse(BaseModel):
     models_loaded: bool
     models_count: int
 
-class RandomPatientResponse(BaseModel):
-    patient: dict
+class RandomCommentResponse(BaseModel):
+    comment: dict

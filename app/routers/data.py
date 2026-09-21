@@ -7,13 +7,14 @@ import json
 import random
 import logging
 from fastapi import APIRouter
-from app.models import RandomPatientResponse
+from app.models import RandomCommentResponse
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/data", tags=["Sample Data"])
 
 _sample_data: list[dict] = []
+
 
 def load_sample_data():
     global _sample_data
@@ -28,17 +29,19 @@ def load_sample_data():
     else:
         logger.warning(f"⚠️ Sample data not found: {sample_file}")
 
-@router.get("/random", response_model=RandomPatientResponse)
+
+@router.get("/random", response_model=RandomCommentResponse)
 async def get_random_comment():
     if not _sample_data:
-        return RandomPatientResponse(patient={"error": "No sample data loaded."})
-    return RandomPatientResponse(patient=random.choice(_sample_data))
+        return RandomCommentResponse(comment={"error": "No sample data loaded."})
+    return RandomCommentResponse(comment=random.choice(_sample_data))
+
 
 @router.get("/random/batch")
 async def get_random_comments(count: int = 5):
     if not _sample_data:
-        return {"patients": [], "error": "No sample data loaded."}
-    
+        return {"comments": [], "error": "No sample data loaded."}
+
     count = min(count, 50)
-    patients = random.sample(_sample_data, min(count, len(_sample_data)))
-    return {"patients": patients}
+    comments = random.sample(_sample_data, min(count, len(_sample_data)))
+    return {"comments": comments}
