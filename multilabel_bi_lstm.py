@@ -6,12 +6,19 @@ import seaborn as sns
 import os
 import re
 import unicodedata
+import random
 import tensorflow as tf
 from tensorflow.keras import layers, Model, callbacks, initializers
 from sklearn.metrics import (
-    classification_report, precision_recall_curve,
-    f1_score, confusion_matrix, ConfusionMatrixDisplay
+    precision_recall_curve,
+    confusion_matrix, ConfusionMatrixDisplay
 )
+
+# Reproducibility
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
 
 
 # %%
@@ -300,33 +307,31 @@ if __name__ == "__main__":
     print("\n--- Final Optimal Thresholds Dictionary ---")
     print(optimal_thresholds)
 
-# %%
-# ==========================================
-# STAGE 3: SAVE MODEL & ARTIFACTS
-# ==========================================
-import json
-import os
+    # ==========================================
+    # STAGE 3: SAVE MODEL & ARTIFACTS
+    # ==========================================
+    import json
 
-# Ensure the models directory exists
-os.makedirs("models", exist_ok=True)
+    # Ensure the models directory exists
+    os.makedirs("models", exist_ok=True)
 
-print("\n--- Saving Model and Artifacts ---")
+    print("\n--- Saving Model and Artifacts ---")
 
-# 1. Save Keras Model (Forcing 'tf' SavedModel directory format)
-model_v1.save("models/multilabel_model", save_format="tf")
+    # 1. Save Keras Model (Forcing 'tf' SavedModel directory format)
+    model_v1.save("models/multilabel_model", save_format="tf")
 
-# 2. Package all dynamically generated thresholds and labels
-# We cast np.float32 to standard float so JSON can serialize it
-inference_artifacts = {
-    "optimal_thresholds": {k: float(v) for k, v in optimal_thresholds.items()},
-    "target_cols": TARGET_COLS
-}
+    # 2. Package all dynamically generated thresholds and labels
+    # We cast np.float32 to standard float so JSON can serialize it
+    inference_artifacts = {
+        "optimal_thresholds": {k: float(v) for k, v in optimal_thresholds.items()},
+        "target_cols": TARGET_COLS
+    }
 
-# 3. Save as JSON
-with open("models/multilabel_inference_artifacts.json", "w") as f:
-    json.dump(inference_artifacts, f, indent=4)
+    # 3. Save as JSON
+    with open("models/multilabel_inference_artifacts.json", "w") as f:
+        json.dump(inference_artifacts, f, indent=4)
     
-print("✅ Successfully saved the model and thresholds to the 'models/' directory.")
+    print("✅ Successfully saved the model and thresholds to the 'models/' directory.")
 
 # %%
 

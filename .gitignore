@@ -40,3 +40,8 @@ data/
 
 # Reference Project (DO NOT PUSH)
 charge-estimation-deployment/
+
+# Personal local dev guide (not tracked)
+guide.md
+model_metrics.md
+toxicity/

@@ -1,7 +1,14 @@
 tensorflow==2.10.1
-fastapi>=0.115.0
-uvicorn[standard]>=0.34.0
 numpy>=1.23.0,<2.0.0
-httpx>=0.28.0
-pydantic>=2.0.0
 protobuf<3.21.0
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+httpx==0.28.1
+pydantic==2.13.5
+
+# Optional third model: DistilBERT transformer + attention-rollout explainability.
+# CPU-only torch wheel (no CUDA needed for inference-only serving). If these two
+# packages or models/transformer_model/ are missing, the API still runs fine —
+# model_choice='transformer' just responds with a clear 422 instead of crashing.
+torch==2.5.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+transformers==4.46.3

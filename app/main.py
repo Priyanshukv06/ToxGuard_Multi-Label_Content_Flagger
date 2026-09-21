@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.model_loader import load_all_models
+from app.model_loader import load_all_models, models_ready
 from app.routers import predict, data
 from app.routers.data import load_sample_data
 from app.keep_alive import keep_alive_loop
@@ -21,6 +21,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+async def _load_models_task():
+    """Load models off the event loop; never let the task fail silently."""
+    try:
+        await asyncio.to_thread(load_all_models)
+        logger.info("✅ Models loaded and ready.")
+    except Exception:
+        logger.exception("❌ Model loading failed; /predict will return 503 until fixed.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: load models + sample data. Shutdown: cleanup."""
@@ -28,8 +38,9 @@ async def lifespan(app: FastAPI):
     logger.info("  Starting ToxGuard Content Flagger API")
     logger.info("=" * 60)
 
-    # Load ML models into memory in the background so it doesn't block port binding
-    asyncio.create_task(asyncio.to_thread(load_all_models))
+    # Load ML models in the background so it doesn't block port binding.
+    # The wrapper logs any failure instead of dying as an orphaned task.
+    asyncio.create_task(_load_models_task())
 
     # Load sample data for the randomize feature
     load_sample_data()
@@ -37,9 +48,7 @@ async def lifespan(app: FastAPI):
     # Start keep-alive background task
     keep_alive_task = asyncio.create_task(keep_alive_loop())
 
-    logger.info("=" * 60)
     logger.info("  ✅ API Ready — models are loading in the background")
-    logger.info("=" * 60)
 
     yield
 
@@ -68,15 +77,18 @@ app.add_middleware(
 app.include_router(predict.router)
 app.include_router(data.router)
 
+
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check():
-    """Health check endpoint."""
-    from app.model_loader import _models
+    """Health check endpoint — reports real readiness (all models loaded)."""
+    from app.model_loader import _models, _load_error
+    ready = models_ready()
     return HealthResponse(
-        status="healthy",
-        models_loaded=len(_models) > 0,
-        models_count=len(_models)
+        status="healthy" if ready else ("error" if _load_error else "loading"),
+        models_loaded=ready,
+        models_count=len(_models),
     )
+
 
 @app.get("/", tags=["System"])
 async def root():
