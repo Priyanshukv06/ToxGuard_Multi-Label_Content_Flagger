@@ -404,8 +404,19 @@ def main():
         st.markdown("---")
         st.markdown("### ⚖️ Fairness / Unintended Bias")
         fairness = load_json_file("fairness.json")
-        if not fairness or model_key not in fairness:
+        if not fairness:
             st.info("Fairness metrics not found. Run `python scripts/fairness_eval.py` (env: toxguard-train) to generate `models/fairness.json`.")
+        elif model_key not in fairness:
+            if model_key == "transformer":
+                st.info(
+                    "Fairness analysis hasn't been run for the Transformer model yet. "
+                    "The identity-subgroup bias check requires scoring all ~400k test comments on CPU, "
+                    "which takes several hours for this model. To generate it, run:\n\n"
+                    "`python scripts/fairness_eval.py` (env: toxguard-train)"
+                )
+            else:
+                st.info(f"Fairness metrics for the {model_key} model were not found in `models/fairness.json`. "
+                         "Run `python scripts/fairness_eval.py` (env: toxguard-train) to generate them.")
         else:
             fb = fairness[model_key]
             st.caption(
