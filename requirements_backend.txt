@@ -6,9 +6,15 @@ uvicorn[standard]==0.53.0
 httpx==0.28.1
 pydantic==2.13.5
 
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # Optional third model: DistilBERT transformer + attention-rollout explainability.
 # CPU-only torch wheel (no CUDA needed for inference-only serving). If these two
 # packages or models/transformer_model/ are missing, the API still runs fine —
 # model_choice='transformer' just responds with a clear 422 instead of crashing.
-torch==2.5.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+# NOTE: --extra-index-url must be on its own line (not appended after a package
+# spec) for pip to honor it when installing via `pip install -r requirements.txt`
+# inside Docker; the "+cpu" local-version suffix does not exist on PyPI itself,
+# only on PyTorch's own index, which is why this failed in the HF build before.
+torch==2.5.1
 transformers==4.46.3
