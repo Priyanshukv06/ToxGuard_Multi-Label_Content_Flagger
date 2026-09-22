@@ -14,12 +14,37 @@ def tf_standardize(input_data):
     return tf.strings.regex_replace(no_punct, r"\s+", " ")
 
 def downsample_curve(precision, recall, thresholds, num_points=50):
-    # Select roughly num_points evenly spaced indices
-    indices = np.linspace(0, len(thresholds)-1, num_points, dtype=int)
+    """
+    Resample the PR curve onto `num_points` evenly spaced threshold *values*
+    in [min(thresholds), max(thresholds)] rather than evenly spaced array
+    *indices*. sklearn's precision_recall_curve returns one threshold per
+    unique score in the data, so when scores cluster tightly near one end
+    (e.g. the transformer's sigmoid outputs bunch up near 1.0 due to
+    pos_weight), index-based sampling squeezes ~90% of the sampled points
+    into a tiny threshold window and the resulting chart looks flat/broken.
+    Sampling on threshold value keeps the x-axis (threshold) uniform for any
+    model, so the chart is readable regardless of the underlying score
+    distribution.
+
+    precision/recall are step functions of threshold (sklearn returns them
+    sorted by ascending threshold), so for each target threshold we take the
+    precision/recall of the last curve point whose threshold is <= target
+    (np.searchsorted gives an exact, non-interpolated lookup consistent with
+    how the metric actually behaves at that cutoff).
+    """
+    if len(thresholds) == 0:
+        return {"precision": [], "recall": [], "thresholds": []}
+
+    lo, hi = float(thresholds[0]), float(thresholds[-1])
+    target_thresholds = np.linspace(lo, hi, num_points)
+    # index of the rightmost threshold <= each target (thresholds is ascending)
+    idx = np.searchsorted(thresholds, target_thresholds, side="right") - 1
+    idx = np.clip(idx, 0, len(thresholds) - 1)
+
     return {
-        "precision": precision[indices].tolist(),
-        "recall": recall[indices].tolist(),
-        "thresholds": thresholds[indices].tolist()
+        "precision": precision[idx].tolist(),
+        "recall": recall[idx].tolist(),
+        "thresholds": target_thresholds.tolist()
     }
 
 def calculate_f1(precision, recall):
