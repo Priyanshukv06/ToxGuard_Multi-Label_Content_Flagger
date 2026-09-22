@@ -108,6 +108,72 @@ def _analyze(model_key, score, y, ident_bin):
     }
 
 
+def _analyze_transformer(texts, y, ident_bin):
+    """
+    Optional: adds transformer fairness metrics if torch/transformers are
+    importable and models/transformer_model/ exists. Fully isolated with
+    try/except so this never breaks the two TF models' fairness analysis above.
+    Runs on the FULL test set (slow on CPU — see the warning in main()).
+    """
+    model_dir = os.path.join(MODELS_DIR, "transformer_model")
+    artifacts_path = os.path.join(MODELS_DIR, "transformer_inference_artifacts.json")
+    if not os.path.exists(model_dir):
+        print("\n[transformer] models/transformer_model/ not found — skipping fairness analysis.")
+        return None
+
+    try:
+        import torch
+        import torch.nn as nn
+        from transformers import AutoTokenizer, AutoModel
+    except ImportError:
+        print("\n[transformer] torch/transformers not installed in this env — skipping.")
+        return None
+
+    try:
+        with open(artifacts_path) as f:
+            art = json.load(f)
+
+        class _DistilBertMultiLabel(nn.Module):
+            def __init__(self, backbone, num_classes, dropout=0.3):
+                super().__init__()
+                self.backbone = backbone
+                self.dropout = nn.Dropout(dropout)
+                self.classifier = nn.Linear(backbone.config.hidden_size, num_classes)
+
+            def forward(self, input_ids, attention_mask):
+                out = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
+                return self.classifier(self.dropout(out.last_hidden_state[:, 0, :]))
+
+        print("\n[transformer] Loading models/transformer_model ...")
+        tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        backbone = AutoModel.from_pretrained(model_dir)
+        target_cols = art["target_cols"]
+        max_len = int(art.get("max_len", 128))
+        model = _DistilBertMultiLabel(backbone, len(target_cols))
+        model.classifier.load_state_dict(torch.load(os.path.join(model_dir, "classifier_head.pt"), map_location="cpu"))
+        model.eval()
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device)
+
+        print(f"[transformer] Predicting toxicity on {len(texts):,} test rows ({device})...")
+        toxicity_idx = target_cols.index("toxicity")
+        score = np.zeros(len(texts), dtype=float)
+        bs = 64
+        with torch.no_grad():
+            for i in range(0, len(texts), bs):
+                chunk = [str(t) for t in texts[i:i + bs]]
+                enc = tokenizer(chunk, return_tensors="pt", truncation=True, max_length=max_len, padding=True)
+                enc = {k: v.to(device) for k, v in enc.items()}
+                logits = model(enc["input_ids"], enc["attention_mask"])
+                score[i:i + bs] = torch.sigmoid(logits)[:, toxicity_idx].cpu().numpy()
+
+        return _analyze("transformer", score, y, ident_bin)
+    except Exception as e:
+        print(f"\n[transformer] Fairness analysis failed, skipping: {e}")
+        return None
+
+
 def main():
     t0 = time.time()
     if not os.path.exists(ALL_CSV):
@@ -154,12 +220,26 @@ def main():
         "two_stage": _analyze("two_stage", score_v1, y, ident_bin),
     }
 
+    # Optional third model: transformer (skips gracefully if unavailable).
+    # WARNING: this runs the transformer on the FULL test set (~400k rows) on
+    # whatever device is available. On CPU this is very slow in practice (took
+    # ~4 hours on this machine for scripts/evaluate.py's equivalent full-test-set
+    # pass) — set SKIP_TRANSFORMER_FAIRNESS=1 to skip it and keep this script fast.
+    if os.environ.get("SKIP_TRANSFORMER_FAIRNESS") == "1":
+        print("\n[transformer] SKIP_TRANSFORMER_FAIRNESS=1 set — skipping (fast path).")
+    else:
+        transformer_result = _analyze_transformer(X, y, ident_bin)
+        if transformer_result is not None:
+            result["transformer"] = transformer_result
+
     with open(OUT_PATH, "w") as f:
         json.dump(result, f, indent=2)
 
     print("\n" + "=" * 62)
     print(f"Saved: {OUT_PATH}   ({time.time()-t0:.0f}s)")
-    for mk in ("multilabel", "two_stage"):
+    for mk in ("multilabel", "two_stage", "transformer"):
+        if mk not in result:
+            continue
         b = result[mk]
         print(f"\n[{mk}] overall AUC={round(b['overall_toxicity_auc'],4) if b['overall_toxicity_auc'] else None} "
               f"| mean subgroup AUC={round(b['mean_subgroup_auc'],4) if b['mean_subgroup_auc'] else None} "
